@@ -11,12 +11,7 @@ namespace AOC2023.Day2
     {
         internal static async Task Run()
         {
-            var config = new Dictionary<string, int>()
-            {
-                { "red", 12 },
-                { "green", 13 },
-                { "blue", 14 },
-            };
+            var config = new Dictionary<string, int>() { { "red", 12 }, { "green", 13 }, { "blue", 14 } };
             var f = await File.ReadAllLinesAsync("Day2/input.txt");
             var r = new Regex("(((\\d+) (\\w+),?\\s?)+;?\\s?)+");
             var gs = f.Select(b => r.Matches(b)[0].Groups[3].Captures.Select((a, i) => (int.Parse(a.Value), r.Matches(b)[0].Groups[4].Captures[i].Value)).GroupBy(a => a.Item2).Select(a => (a.Key, a.MaxBy(b => b.Item1).Item1)).ToDictionary(a => a.Key, a => a.Item2))
