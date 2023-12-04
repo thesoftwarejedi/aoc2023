@@ -1,3 +1,3 @@
-﻿using AOC2023.Day2;
+﻿using AOC2023.Day4;
 
 await Main.Run();
