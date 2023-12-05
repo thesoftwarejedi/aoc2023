@@ -53,44 +53,68 @@ namespace AOC2023.Day5
             }).MinBy(x => x.val).val;
 
             Console.WriteLine($"Part 1: {q}");
-            var seedsF = f[0].Substring(6).Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => ulong.Parse(x)).ToArray();
+            var seedsF = f[0].Substring(6).Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => ulong.Parse(x)).Batch(2).Select(a=>(a.First(), a.Last()));
 
 
 
-            var g = seeds.Select(seed =>
-            {
-                ulong val = seed;
-                foreach (var map in maps)
-                {
-                    foreach (var (d, s, l) in map)
-                    {
-                        if (val >= s && val <= s + l)
-                        {
-                            val = d + (val - s);
-                            break;
-                        }
-                    }
-                }
-                return (seed, val);
-            }).MinBy(x => x.val).val;
+            var g = seedsF.SelectMany(s => GetMapped(s.Item1, s.Item2, maps, 0)).Min();
             Console.WriteLine($"Part 2: {g}");
         }
 
-        public IEnumerable<ulong> GetMapped(ulong s, ulong l, List<List<(ulong d, ulong s, ulong l)>> maps, int i)
+        public static IEnumerable<ulong> GetMapped(ulong s, ulong l, List<List<(ulong d, ulong s, ulong l)>> maps, int i)
         {
+            var matched = new List<(ulong, ulong)>();
+            ulong seedMin = s;
+            ulong seedMax = s + l - 1;
             foreach (var map in maps[i])
             {
-                ulong seedMin = s;
-                ulong seedMax = s + l - 1;
                 ulong mapMin = map.s;
                 ulong mapMax = map.s + map.l - 1;
                 if (seedMin <= mapMax && seedMax >= mapMin)
                 {
-                    if (i > maps.Count - 1)
-                        yield return map.d + (s - map.s);
+                    if (i >= maps.Count - 1)
+                    {
+                        yield return map.d + (Math.Max(seedMin, mapMin) - map.s);
+                        matched.Add((Math.Max(seedMin, mapMin), Math.Min(seedMax, mapMax)));
+                    }
                     else
-                        foreach (var x in GetMapped(map.d + (s - map.s), map.l, maps, i + 1))
+                    {
+                        var inMin = map.d + (Math.Max(seedMin, mapMin) - map.s);
+                        var inMax = map.d + (Math.Min(seedMax, mapMax) - map.s);
+                        foreach (var x in GetMapped(inMin, inMax - inMin + 1, maps, i + 1))
                             yield return x;
+                        matched.Add((Math.Max(seedMin, mapMin), Math.Min(seedMax, mapMax)));
+                    }
+                } 
+            }
+            matched = matched.OrderBy(x => x.Item1).ToList();
+            foreach (var (min, max) in matched)
+            {
+                if (min > seedMin)
+                {
+                    if (i >= maps.Count - 1)
+                    {
+                        yield return seedMin;
+                        break;
+                    }
+                    else
+                    {
+                        foreach (var x in GetMapped(seedMin, min - seedMin + 1, maps, i + 1))
+                            yield return x;
+                    }
+                }
+                seedMin = max + 1;
+            }
+            if (seedMin <= seedMax)
+            {
+                if (i >= maps.Count - 1)
+                {
+                    yield return seedMin;
+                }
+                else
+                {
+                    foreach (var x in GetMapped(seedMin, seedMax - seedMin + 1, maps, i + 1))
+                        yield return x;
                 }
             }
         }
