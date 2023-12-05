@@ -53,10 +53,10 @@ namespace AOC2023.Day5
             }).MinBy(x => x.val).val;
 
             Console.WriteLine($"Part 1: {q}");
+
+
+
             var seedsF = f[0].Substring(6).Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => ulong.Parse(x)).Batch(2).Select(a=>(a.First(), a.Last()));
-
-
-
             var g = seedsF.SelectMany(s => GetMapped(s.Item1, s.Item2, maps, 0)).Min();
             Console.WriteLine($"Part 2: {g}");
         }
